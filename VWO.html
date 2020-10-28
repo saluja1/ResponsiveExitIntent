@@ -1,0 +1,183 @@
+<!DOCTYPE HTML>
+<HTML>
+<HEAD>
+<TITLE>HTML5 Demo</TITLE>
+<!--<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+</HEAD>
+
+<BODY>
+
+<script>
+
+    var windowWidth = window.outerWidth;
+    var exitIntentPopup = {
+        popupInit: function() {
+            var rootPopupContainer = $("<div>");
+            rootPopupContainer.prop({id: "rootPopupContainer", visible: true});
+            $("body").append(rootPopupContainer);
+
+            var signUpDiv = $("<div>");
+            signUpDiv.prop({id: "signUpDiv"});
+            rootPopupContainer.append(signUpDiv);
+
+            signUpDiv.append('<a class="signupCrossButton" style="position: absolute;right: 10px;top: 10px;" href="#"><img src="https://tolunaisd.s3.ap-south-1.amazonaws.com/IND/Projects/demoImages/cross.jpg" /></a>');
+
+            var signUpInner = $("<div>");
+            signUpInner.prop({id: "signUpInner"});
+            signUpDiv.append(signUpInner);
+
+            var signUpInnerLeft = $("<div>");
+            signUpInnerLeft.prop({id: "signUpInnerLeft"});
+            signUpInner.append(signUpInnerLeft);
+            signUpInnerLeft.append('<div class="signupFormHeading"><h2>Get $10 off when you sign up for</h2><p>Savings, News, Updates and more</p></div>');
+
+            signUpForm = '<form method="POST" class="signupForm"><div class="form-group"><input type="text" placeholder="your name" name="name" class="userName" /></div><div class="form-group"><input type="text" placeholder="email address" name="email" class="userEmail" /></div><div class="form-group"><input type="checkbox" id="subscribeCheckbox" name="subscribeCheckbox" class="subscribeCheckbox" /><label for="subscribeCheckbox" class="subscribeCheckboxLabel">Check this box to receive monthly newsletter.</label></div><div class="form-error"></div><div class="form-group"><input type="submit" class="submitForm" value="SIGN UP" /></div><div class="signupFormPolicyButton"><a href="#">PRIVACY POLICY</a></div></form>';
+
+            signUpInnerLeft.append(signUpForm);
+
+            var signUpInnerRight = $("<div>");
+            signUpInnerRight.prop({id: "signUpInnerRight"});
+            signUpInner.append(signUpInnerRight);
+            signUpInnerRight.append('<img src="https://tolunaisd.s3.ap-south-1.amazonaws.com/IND/Projects/demoImages/saleImage.jpg" />');
+
+            this.CSSInit();
+
+            $('.signupCrossButton').click(() => {
+                this.setCookie('false');
+                $('#rootPopupContainer').fadeOut(500);
+                return false;
+            });
+
+            $('.signupForm').submit(function() {
+                var nameValue = $(this).find('.userName').val();
+                var emailValue = $(this).find('.userEmail').val();
+                var checkValue = $(this).find('.subscribeCheckbox').is(':checked');
+
+                $('.form-error').text('').hide();
+
+                if(emailValue == '') {
+                    $('.form-error').text('Please enter email address.').show();
+                    return false;
+                }
+
+                if(checkValue == false) {
+                    $('.form-error').text('Please select checkbox to receive newsletter.').show();
+                    return false;
+                }
+
+                if(!exitIntentPopup.emailValidation(emailValue)) {
+                    $('.form-error').text('The email address is not correct.').show();
+                    return false;
+                }
+
+                exitIntentPopup.setCookie('true');
+                $('#rootPopupContainer').fadeOut(500);
+                return false;
+            });
+            this.showPopup();
+            this.resizeHandler();
+            $(window).resize(() => {
+                this.resizeHandler();
+            });
+        },
+
+        CSSInit: function(){
+
+            $('#rootPopupContainer').css({"position": "fixed", "top": "0", "left": "0", "height": "100vh", "width": "100%", "background-color": "#4c4c4c", "z-index":"101", "display": "none", "align-content": "center", "justify-content": "center"});
+
+            $('#signUpDiv').css({'width': '100%', 'background-color': '#ffd101', 'z-index': '99', 'box-sizing': 'border-box', "margin": "auto", "padding": "50px", "position": "relative","max-width": "960px"});
+
+            $('#signUpInner').css({ display: "grid", "grid-template-columns": "1.75fr 1.25fr", "column-gap": "30px", "align-items": "center"});
+
+            $('.signupFormHeading').css({'text-align': 'center'});
+
+            $('.signupFormHeading h2').css({'margin': '0', 'text-transform': 'uppercase', 'font-size': '22px'});
+
+            $('.signupFormHeading p').css({'margin': '0 0 10px', 'text-transform': 'uppercase', 'font-size': '18px'});
+
+            $('.form-group').css({'padding': '10px 0'});
+
+            $('.signupForm input[type="text"]').css({'padding': '20px', 'width': '100%',"box-sizing": "border-box" });
+
+            $('.subscribeCheckbox').css({'width': '20px', 'height': '20px', 'margin': '0 5px 1px 0', 'display': 'inline-block', 'vertical-align': 'middle'});
+
+            $('.subscribeCheckboxLabel').css({'font-size': '15px', 'display': 'inline-block', 'vertical-align': 'middle'});
+
+            $('.form-error').css({'font-size': '12px', 'color': '#ff0000', 'display': 'none', 'text-align': 'center'});
+
+            $('.submitForm').css({'display': 'block', 'width': '100%', 'background-color': '#000000', 'color': '#ffffff', 'cursor': 'pointer', 'padding': '20px', 'text-align': 'center', 'border': 0, 'font-size': '16px'});
+
+            $('.signupFormPolicyButton').css({'text-align': 'center'});
+
+            $('.signupFormPolicyButton a').css({'font-size': '12px', 'color': '#000000', 'text-decoration': 'underline'});
+        },
+
+        emailValidation: function($email) {
+            var cs_regex = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+            return cs_regex.test($email);
+        },
+     
+        setCookie: function(cookie) {
+            var cookieCreate = new Date();
+            var cookieExpire = new Date(cookieCreate.getTime() + (10 * 24 * 60 * 60 * 1000));
+            document.cookie = 'UserRegistered='+cookie+'; expires='+cookieExpire.toUTCString() + '; path=/';
+        },
+
+        showPopup: function() {
+            if(windowWidth > 767) {
+                $('#rootPopupContainer').css({display: "grid", opacity: "0"});
+                $('#rootPopupContainer').animate({opacity:1},1000);
+            } else {
+                setTimeout(function() {
+                    $('#rootPopupContainer').css({display: "grid", opacity: "0"});
+                    $('#rootPopupContainer').animate({opacity:1},1000);
+                }, 5000);
+            }
+        },
+
+        resizeHandler: function() {
+            let windowWidth = window.outerWidth;
+            if(windowWidth > 767) {
+                $("#signUpInner").css({ "grid-template-columns": "1.75fr 1.25fr", "column-gap": "30px"});
+                $("#signUpInnerRight").css({"display": "block"});
+                $('.signupForm input[type="text"]').css({'padding': '20px'});
+                $('.signupFormPolicyButton a').css({'font-size': '12px'});
+                $('.submitForm').css({'padding': '20px', 'font-size': '16px'});
+                $('.form-group').css({'padding': '10px 0'});
+                $('.signupFormHeading h2').css({'font-size': '22px'});
+                $('.signupFormHeading p').css({'font-size': '18px'});
+                $('.subscribeCheckboxLabel').css({'font-size': '15px'});
+                $('.subscribeCheckbox').css({'width': '20px', 'height': '20px'});
+            } else {
+                $("#signUpInner").css({"grid-template-columns": "1fr"});
+                $("#signUpInnerRight").css({"display": "none"});
+                $('.signupForm input[type="text"], .signupForm input[type="email"]').css({'padding': '8px'});
+                $('.signupFormPolicyButton a').css({'font-size': '10px'});
+                $('.submitForm').css({'padding': '12px', 'font-size': '12px'});
+                $('.form-group').css({'padding': '5px 0'});
+                $('.signupFormHeading h2').css({'font-size': '12px'});
+                $('.signupFormHeading p').css({'font-size': '12px'});
+                $('.subscribeCheckboxLabel').css({'font-size': '10px'});
+                $('.subscribeCheckbox').css({'width': '15px', 'height': '15px'});
+            }
+        }  
+    }
+
+    if(windowWidth > 767) {
+        $(document).on('mouseleave', (event)=>{
+            var allCookies = document.cookie;
+            if (allCookies.indexOf('UserRegistered=false') != -1 || allCookies.indexOf('UserRegistered=true') != -1) {
+                return false;
+            } else if( event.clientY < 0 && ($("#rootPopupContainer").prop("visible") == false || $("#rootPopupContainer").prop("visible") == undefined)) {
+                exitIntentPopup.popupInit();
+            }
+        });
+    } else if(windowWidth < 767 && ($("#rootPopupContainer").prop("visible") == false || $("#rootPopupContainer").prop("visible") == undefined)) {
+        exitIntentPopup.popupInit();
+    }
+ 
+</script>
+</BODY>
+</HTML>
